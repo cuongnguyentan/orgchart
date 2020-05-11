@@ -50,8 +50,6 @@ const Leaf = forwardRef(({ label, subordinates, level }, leafRef) => {
     const w = Math.abs((lastLeft + (lastWidth / 2)) - (firstLeft + (firstWidth / 2)));
     const l = firstWidth / 2;
 
-    console.log('><>>>>>>>>>>>>>>>>>', w);
-
     setBranchWidth(w);
     setBranchLeft(l);
   }, [lastSubRef, firstSubRef]);
