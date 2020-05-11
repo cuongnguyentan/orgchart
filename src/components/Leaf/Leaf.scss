@@ -1,0 +1,50 @@
+@import "~assets/scss/colors";
+
+$leafWidth: 150px;
+
+.leaf {
+  display: inline-block;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: top;
+  position: relative;
+
+  .label {
+    background-color: $persianBlue;
+    padding: 15px 30px;
+    padding-bottom: 18px;
+    color: $white;
+    display: inline-block;
+    width: $leafWidth;
+    margin: 15px;
+  }
+
+  .root {
+    content: '';
+    height: 15px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    background-color: $black;
+  }
+
+  .subordinates {
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+
+    >.root {
+      top: -15px;
+    }
+
+    .branch {
+      content: '';
+      position: absolute;
+      top: 0;
+      height: 1px;
+      background-color: $black;
+    }
+  }
+}
