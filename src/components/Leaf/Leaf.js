@@ -52,7 +52,7 @@ const Leaf = forwardRef(({ label, subordinates, level }, leafRef) => {
 
     setBranchWidth(w);
     setBranchLeft(l);
-  }, [lastSubRef, firstSubRef]);
+  }, [lastSubRef, firstSubRef, subordinates]);
 
   return (
     <div className="leaf" ref={leafRef}>
