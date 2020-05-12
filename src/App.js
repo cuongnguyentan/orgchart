@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { gsap, TweenMax } from 'gsap';
-import { Draggable } from 'gsap/all';
 
 import defaultData from 'assets/json/defaultData.json';
 import Employee from 'models/Employee';
@@ -8,12 +6,11 @@ import Leaf from 'components/Leaf';
 
 import './App.scss';
 
-gsap.registerPlugin(Draggable);
-
 const App = () => {
   const [data] = useState(defaultData);
   const [employees, setEmployees] = useState([]);
   const chartRef = useRef();
+  const appRef = useRef();
 
   useEffect(() => {
     if (!data || !data.length) return;
@@ -34,19 +31,17 @@ const App = () => {
   }, [employees]);
 
   useEffect(() => {
+    if (!appRef || !appRef.current) return;
     if (!chartRef || !chartRef.current) return;
 
-    Draggable.create(chartRef.current, {
-      type: 'x, y',
-    });
-
     setTimeout(() => {
-      TweenMax.set(chartRef.current, { x: (window.innerWidth - chartRef.current.scrollWidth) / 2 });
+      appRef.current.scrollLeft = (chartRef.current.scrollWidth - window.innerWidth) / 2;
+      appRef.current.scrollTop = (chartRef.current.scrollHeight - window.innerHeight) / 2;
     }, 0);
-  }, [chartRef]);
+  }, [appRef]);
 
   return (
-    <div id="app">
+    <div id="app" ref={appRef}>
       <header>Organization Chart</header>
 
       <div className="chart-wrapper" ref={chartRef}>
