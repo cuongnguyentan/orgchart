@@ -17,6 +17,19 @@ $leafWidth: 150px;
     display: inline-block;
     width: $leafWidth;
     margin: 15px;
+    transition: all .2s ease-in-out;
+    cursor: pointer;
+
+    &:focus, &:active {
+      outline: none;
+    }
+
+    &.targetted {
+      box-shadow: 0 0 0 2px $persianBlue inset;
+      color: $persianBlue;
+      background-color: $white !important;
+      font-weight: bold;
+    }
   }
 
   .root {

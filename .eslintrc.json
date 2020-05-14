@@ -38,6 +38,8 @@
     "no-lonely-if": 0,
     "import/no-cycle": 2,
     "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
-    "import/no-extraneous-dependencies": [2, { "devDependencies": ["webpack.*.js"] }]
+    "import/no-extraneous-dependencies": [2, { "devDependencies": ["webpack.*.js"] }],
+    "jsx-a11y/click-events-have-key-events": 0,
+    "jsx-a11y/no-noninteractive-element-interactions": 0
   }
 }

@@ -1,16 +1,34 @@
-import React, { forwardRef, useRef, useLayoutEffect, useState } from 'react';
+import React, { forwardRef, useRef, useLayoutEffect, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import $ from 'jquery';
+import classNames from 'classnames';
+import { TweenMax } from 'gsap';
+import { Draggable } from 'gsap/all';
+import composeRefs from '@seznam/compose-react-refs';
 
 import { levelColors } from 'consts';
+import appActions from 'AppActions';
 
 import './Leaf.scss';
 
-const Leaf = forwardRef(({ label, subordinates, level }, leafRef) => {
+const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
   const firstSubRef = useRef(null);
   const lastSubRef = useRef(null);
+  const leafRef = useRef(null);
+  const labelRef = useRef(null);
+
   const [branchWidth, setBranchWidth] = useState();
   const [branchLeft, setBranchLeft] = useState();
+  const [targetted, setTargetted] = useState(false);
+
+  const dispatch = useDispatch();
+  const { endCoords, attaching } = useSelector((state) => state.app);
+
+  const labelClass = classNames({
+    label: true,
+    targetted
+  });
 
   const color = levelColors[(level >= levelColors.length) ? (levelColors.length - 1) : level];
 
@@ -34,6 +52,34 @@ const Leaf = forwardRef(({ label, subordinates, level }, leafRef) => {
     return null;
   };
 
+  /* eslint-disable react/no-this-in-sfc */
+  const makeDraggable = (e) => {
+    if (!leafRef || !leafRef.current) return;
+
+    const t = Draggable.create(leafRef.current, {
+      type: 'x,y',
+      onDragEnd() {
+        this.kill();
+        dispatch(appActions.setEndCoords({
+          x: this.pointerX,
+          y: this.pointerY
+        }));
+
+        if (!labelRef || !labelRef.current) return;
+        labelRef.current.focus();
+      }
+    });
+
+    if (t && t.length) {
+      t[0].startDrag(e);
+    }
+
+    dispatch(appActions.setTarget(id));
+
+    setTargetted(true);
+  };
+  /* eslint-enable */
+
   useLayoutEffect(() => {
     if (!lastSubRef || !lastSubRef.current) return;
     if (!firstSubRef || !firstSubRef.current) return;
@@ -54,9 +100,47 @@ const Leaf = forwardRef(({ label, subordinates, level }, leafRef) => {
     setBranchLeft(l);
   }, [lastSubRef, firstSubRef, subordinates]);
 
+  useEffect(() => {
+    if (!leafRef || !leafRef.current) return;
+    if (!endCoords) return;
+
+    const { x, y } = endCoords;
+    const { top, left, width, height } = leafRef.current.getBoundingClientRect();
+
+    if (
+      (x < left)
+      || (x > left + width)
+      || (y < top)
+      || (y > top + height)
+    ) {
+      return;
+    }
+
+    dispatch(appActions.attach(id));
+  }, [endCoords, id, dispatch, attaching]);
+
+  useEffect(() => {
+    if (!leafRef || !leafRef.current) return;
+
+    TweenMax.set(leafRef.current, {
+      transform: 'none',
+      zIndex: 'initial'
+    });
+  }, [leafRef]);
+
   return (
-    <div className="leaf" ref={leafRef}>
-      <div className="label" style={labelStyle}>{ label }</div>
+    <div className="leaf" ref={composeRefs(leafRef, outerRef)}>
+      <div
+        ref={labelRef}
+        className={labelClass}
+        role="button"
+        tabIndex={0}
+        style={labelStyle}
+        onBlur={() => setTargetted(false)}
+        onMouseDown={(e) => makeDraggable(e)}
+      >
+        { label }
+      </div>
       { !!level && <div className="root" style={rootStyle} /> }
       { !!subordinates && !!subordinates.length && (
         <>
@@ -69,6 +153,7 @@ const Leaf = forwardRef(({ label, subordinates, level }, leafRef) => {
                 label={sub.name}
                 subordinates={sub.subordinates}
                 key={sub.id}
+                id={sub.id}
                 level={level + 1}
                 ref={selectRef(i)}
               />
@@ -87,7 +172,8 @@ Leaf.propTypes = {
     name: PropTypes.string,
     subordinates: PropTypes.array
   })),
-  level: PropTypes.number.isRequired
+  level: PropTypes.number.isRequired,
+  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired
 };
 
 Leaf.defaultProps = {

@@ -22,9 +22,11 @@
                 "uniqueId": 7,
                 "name": "Will Turner",
                 "subordinates": [{
-                  "name": "Jack Sparrow"
+                  "name": "Jack Sparrows"
                 }, {
                   "name": "James Norrington"
+                }, {
+                  "name": "Davy Jones"
                 }]
               }]
             }]
