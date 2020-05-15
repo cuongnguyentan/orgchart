@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useLayoutEffect, useState, useEffect } from 'react';
+import React, { forwardRef, useRef, useCallback, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import $ from 'jquery';
@@ -12,7 +12,7 @@ import appActions from 'AppActions';
 
 import './Leaf.scss';
 
-const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
+const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef) => {
   const firstSubRef = useRef(null);
   const lastSubRef = useRef(null);
   const leafRef = useRef(null);
@@ -21,13 +21,15 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
   const [branchWidth, setBranchWidth] = useState();
   const [branchLeft, setBranchLeft] = useState();
   const [targetted, setTargetted] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   const dispatch = useDispatch();
-  const { endCoords, attaching } = useSelector((state) => state.app);
+  const { endCoords, lastTerminal, lastDetach } = useSelector((state) => state.app);
 
   const labelClass = classNames({
     label: true,
-    targetted
+    targetted,
+    dragging
   });
 
   const color = levelColors[(level >= levelColors.length) ? (levelColors.length - 1) : level];
@@ -47,6 +49,7 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
   };
 
   const selectRef = (i) => {
+    if (subordinates.length === 1) return composeRefs(firstSubRef, lastSubRef);
     if (i === subordinates.length - 1) return lastSubRef;
     if (i === 0) return firstSubRef;
     return null;
@@ -67,6 +70,11 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
 
         if (!labelRef || !labelRef.current) return;
         labelRef.current.focus();
+
+        setDragging(false);
+      },
+      onDragStart() {
+        setDragging(true);
       }
     });
 
@@ -80,7 +88,7 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
   };
   /* eslint-enable */
 
-  useLayoutEffect(() => {
+  const calibrate = useCallback(() => {
     if (!lastSubRef || !lastSubRef.current) return;
     if (!firstSubRef || !firstSubRef.current) return;
 
@@ -98,7 +106,13 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
 
     setBranchWidth(w);
     setBranchLeft(l);
-  }, [lastSubRef, firstSubRef, subordinates]);
+
+    delegate();
+  }, [lastSubRef, firstSubRef, delegate]);
+
+  useEffect(() => {
+    calibrate();
+  }, [lastSubRef, firstSubRef, subordinates, calibrate]);
 
   useEffect(() => {
     if (!leafRef || !leafRef.current) return;
@@ -117,7 +131,7 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
     }
 
     dispatch(appActions.attach(id));
-  }, [endCoords, id, dispatch, attaching]);
+  }, [endCoords, id, dispatch]);
 
   useEffect(() => {
     if (!leafRef || !leafRef.current) return;
@@ -127,6 +141,12 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
       zIndex: 'initial'
     });
   }, [leafRef]);
+
+  useEffect(() => {
+    if ((lastTerminal === id) || (lastDetach === id)) {
+      calibrate();
+    }
+  }, [lastTerminal, lastDetach, id, calibrate]);
 
   return (
     <div className="leaf" ref={composeRefs(leafRef, outerRef)}>
@@ -139,9 +159,9 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
         onBlur={() => setTargetted(false)}
         onMouseDown={(e) => makeDraggable(e)}
       >
-        { label }
+        { label + id }
       </div>
-      { !!level && <div className="root" style={rootStyle} /> }
+      { !!level && !dragging && <div className="root" style={rootStyle} /> }
       { !!subordinates && !!subordinates.length && (
         <>
           <br />
@@ -156,6 +176,7 @@ const Leaf = forwardRef(({ id, label, subordinates, level }, outerRef) => {
                 id={sub.id}
                 level={level + 1}
                 ref={selectRef(i)}
+                delegate={calibrate}
               />
             )) }
           </div>
@@ -173,11 +194,13 @@ Leaf.propTypes = {
     subordinates: PropTypes.array
   })),
   level: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired
+  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  delegate: PropTypes.func
 };
 
 Leaf.defaultProps = {
-  subordinates: []
+  subordinates: [],
+  delegate: () => {}
 };
 
 export default Leaf;

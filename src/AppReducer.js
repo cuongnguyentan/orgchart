@@ -33,7 +33,9 @@ export const initState = {
   endCoords: {
     x: null,
     y: null
-  }
+  },
+  lastTerminal: null,
+  lastDetach: null
 };
 
 const reducer = (state = initState, action) => {
@@ -77,25 +79,25 @@ const reducer = (state = initState, action) => {
 
       const terminal = bfs(employees_, (t) => (t.id === action.terminal));
 
-      const origin = bfs(employees, (t) => {
+      const detach = bfs(employees, (t) => {
         const i = t.subordinates.findIndex((e) => e.id === target);
         return (i >= 0);
       });
 
-      if (!origin) return state;
-      if (terminal === origin) {
+      if (!detach) return state;
+      if (terminal === detach) {
         return {
           ...state,
           target: null
         };
       }
 
-      const i = origin.subordinates.findIndex((e) => e.id === target);
-      const cargo = origin.subordinates[i];
+      const i = detach.subordinates.findIndex((e) => e.id === target);
+      const cargo = detach.subordinates[i];
 
-      origin.subordinates = [
-        ...origin.subordinates.slice(0, i),
-        ...origin.subordinates.slice(i + 1, origin.subordinates.length)
+      detach.subordinates = [
+        ...detach.subordinates.slice(0, i),
+        ...detach.subordinates.slice(i + 1, detach.subordinates.length)
       ];
 
       terminal.subordinates.push(cargo);
@@ -105,7 +107,9 @@ const reducer = (state = initState, action) => {
         // data: JSON.parse(JSON.stringify(employees_)),
         employees: employees_,
         attaching: false,
-        target: null
+        target: null,
+        lastTerminal: terminal.id,
+        lastDetach: detach.id
       };
     }
 

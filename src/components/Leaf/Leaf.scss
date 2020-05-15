@@ -30,6 +30,11 @@ $leafWidth: 150px;
       background-color: $white !important;
       font-weight: bold;
     }
+
+    &.dragging {
+      position: relative;
+      z-index: 9;
+    }
   }
 
   .root {
