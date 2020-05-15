@@ -72,6 +72,11 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
         labelRef.current.focus();
 
         setDragging(false);
+
+        TweenMax.set(leafRef.current, {
+          transform: 'none',
+          zIndex: 'initial'
+        });
       },
       onDragStart() {
         setDragging(true);
@@ -132,15 +137,6 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
 
     dispatch(appActions.attach(id));
   }, [endCoords, id, dispatch]);
-
-  useEffect(() => {
-    if (!leafRef || !leafRef.current) return;
-
-    TweenMax.set(leafRef.current, {
-      transform: 'none',
-      zIndex: 'initial'
-    });
-  }, [leafRef]);
 
   useEffect(() => {
     if ((lastTerminal === id) || (lastDetach === id)) {

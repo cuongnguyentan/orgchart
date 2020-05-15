@@ -104,9 +104,7 @@ const reducer = (state = initState, action) => {
 
       return {
         ...state,
-        // data: JSON.parse(JSON.stringify(employees_)),
         employees: employees_,
-        attaching: false,
         target: null,
         lastTerminal: terminal.id,
         lastDetach: detach.id
