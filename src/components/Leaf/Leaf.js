@@ -57,6 +57,20 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
     return null;
   };
 
+  const toggle = (val) => {
+    if (val === true) {
+      setEditable(true);
+    } else if (val === false) {
+      if (editable !== null) {
+        setEditable(false);
+
+        if (!labelSwapRef || !labelSwapRef.current) return;
+        const name = labelSwapRef.current.innerHTML;
+        dispatch(appActions.editLeaf(target, name));
+      }
+    }
+  };
+
   /* eslint-disable react/no-this-in-sfc */
   const makeDraggable = (e) => {
     if (!leafRef || !leafRef.current) return;
@@ -81,6 +95,7 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
         });
 
         dispatch(appActions.setTarget(id));
+        toggle(true);
       },
       onDragStart() {
         setDragging(true);
@@ -116,20 +131,6 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
 
     delegate();
   }, [lastSubRef, firstSubRef, delegate]);
-
-  const toggle = (val) => {
-    if (val === true) {
-      setEditable(true);
-    } else if (val === false) {
-      if (editable !== null) {
-        setEditable(false);
-
-        if (!labelSwapRef || !labelSwapRef.current) return;
-        const name = labelSwapRef.current.innerHTML;
-        dispatch(appActions.editLeaf(target, name));
-      }
-    }
-  };
 
   useEffect(() => {
     calibrate();
@@ -184,7 +185,6 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
         role="button"
         tabIndex={0}
         style={labelStyle}
-        onClick={() => toggle(true)}
         onMouseDown={(e) => makeDraggable(e)}
       >
         <div className="origin">
