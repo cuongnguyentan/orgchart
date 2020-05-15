@@ -27,6 +27,7 @@ const bfs = (employees = [], condition = () => {}) => {
 };
 
 export const initState = {
+  activeModal: null,
   data: defaultData,
   employees: [],
   target: null,
@@ -40,6 +41,30 @@ export const initState = {
 
 const reducer = (state = initState, action) => {
   switch(action.type) {
+    case ACTION_TYPES.SET_ACTIVE_MODAL: {
+      const { name, val } = action;
+      let obj = { ...state };
+
+      if (state.activeModal === name) {
+        if ((typeof val === 'undefined')
+        || ((typeof val === 'boolean') && !val)) {
+          obj = {
+            ...state,
+            activeModal: null
+          };
+        }
+      } else {
+        if ((typeof val === 'undefined')
+        || ((typeof val === 'boolean') && val)) {
+          obj = {
+            ...state,
+            activeModal: name
+          };
+        }
+      }
+      return obj;
+    }
+
     case ACTION_TYPES.SET_DATA: {
       let { data } = action;
       if (data && !data.length) {
@@ -79,7 +104,7 @@ const reducer = (state = initState, action) => {
 
       const terminal = bfs(employees_, (t) => (t.id === action.terminal));
 
-      const detach = bfs(employees, (t) => {
+      const detach = bfs(employees_, (t) => {
         const i = t.subordinates.findIndex((e) => e.id === target);
         return (i >= 0);
       });
@@ -108,6 +133,67 @@ const reducer = (state = initState, action) => {
         target: null,
         lastTerminal: terminal.id,
         lastDetach: detach.id
+      };
+    }
+
+    case ACTION_TYPES.DETACH: {
+      const target = action.target || state.target;
+      const { employees } = state;
+      const employees_ = [...employees];
+
+      const detach = bfs(employees_, (t) => {
+        const i = t.subordinates.findIndex((e) => e.id === target);
+        return (i >= 0);
+      });
+
+      if (!detach) return state;
+
+      const i = detach.subordinates.findIndex((e) => e.id === target);
+
+      detach.subordinates = [
+        ...detach.subordinates.slice(0, i),
+        ...detach.subordinates.slice(i + 1, detach.subordinates.length)
+      ];
+
+      return {
+        ...state,
+        employees: employees_,
+        target: null,
+        lastDetach: detach.id
+      };
+    }
+
+    case ACTION_TYPES.ADD_LEAF: {
+      const target = action.terminal || state.target;
+      const { employee } = action;
+      const { employees } = state;
+      const employees_ = [...employees];
+
+      const terminal = bfs(employees_, (t) => (t.id === target));
+      terminal.subordinates.push(employee);
+
+      return {
+        ...state,
+        employees: employees_,
+        target: employee.id,
+        lastTerminal: terminal.id
+      };
+    }
+
+    case ACTION_TYPES.EDIT_LEAF: {
+      const target = action.target || state.target;
+      const { name } = action;
+      const { employees } = state;
+      const employees_ = [...employees];
+
+      const leaf = bfs(employees_, (t) => (t.id === target));
+      if (!leaf) return state;
+
+      leaf.name = name;
+
+      return {
+        ...state,
+        employees: employees_,
       };
     }
 

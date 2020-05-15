@@ -19,6 +19,7 @@ $leafWidth: 150px;
     margin: 15px;
     transition: all .2s ease-in-out;
     cursor: pointer;
+    overflow: hidden;
 
     &:focus, &:active {
       outline: none;
@@ -29,11 +30,26 @@ $leafWidth: 150px;
       color: $persianBlue;
       background-color: $white !important;
       font-weight: bold;
+      cursor: text;
     }
 
     &.dragging {
       position: relative;
       z-index: 9;
+    }
+
+    .swap {
+      display: none;
+    }
+
+    &.editable {
+      .origin {
+        display: none;
+      }
+
+      .swap {
+        display: block;
+      }
     }
   }
 

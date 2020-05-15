@@ -27,14 +27,18 @@
     background-color: $white;
 
     svg {
-      width: 40px;
-      height: 40px;
+      font-size: 36px;
       color: $black;
       cursor: pointer;
+      margin-right: 30px;
     }
 
     input {
       display: none;
+    }
+
+    .targetted {
+      display: inline-block;
     }
   }
 

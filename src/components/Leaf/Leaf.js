@@ -17,19 +17,21 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
   const lastSubRef = useRef(null);
   const leafRef = useRef(null);
   const labelRef = useRef(null);
+  const labelSwapRef = useRef(null);
 
   const [branchWidth, setBranchWidth] = useState();
   const [branchLeft, setBranchLeft] = useState();
-  const [targetted, setTargetted] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [editable, setEditable] = useState(false);
 
   const dispatch = useDispatch();
-  const { endCoords, lastTerminal, lastDetach } = useSelector((state) => state.app);
+  const { endCoords, lastTerminal, lastDetach, target } = useSelector((state) => state.app);
 
   const labelClass = classNames({
     label: true,
-    targetted,
-    dragging
+    targetted: (target === id),
+    dragging,
+    editable
   });
 
   const color = levelColors[(level >= levelColors.length) ? (levelColors.length - 1) : level];
@@ -77,6 +79,8 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
           transform: 'none',
           zIndex: 'initial'
         });
+
+        dispatch(appActions.setTarget(id));
       },
       onDragStart() {
         setDragging(true);
@@ -88,8 +92,6 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
     }
 
     dispatch(appActions.setTarget(id));
-
-    setTargetted(true);
   };
   /* eslint-enable */
 
@@ -114,6 +116,20 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
 
     delegate();
   }, [lastSubRef, firstSubRef, delegate]);
+
+  const toggle = (val) => {
+    if (val === true) {
+      setEditable(true);
+    } else if (val === false) {
+      if (editable !== null) {
+        setEditable(false);
+
+        if (!labelSwapRef || !labelSwapRef.current) return;
+        const name = labelSwapRef.current.innerHTML;
+        dispatch(appActions.editLeaf(target, name));
+      }
+    }
+  };
 
   useEffect(() => {
     calibrate();
@@ -144,6 +160,22 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
     }
   }, [lastTerminal, lastDetach, id, calibrate]);
 
+  useEffect(() => {
+    if (target === id) {
+      if (!labelRef || !labelRef.current) return;
+      labelRef.current.focus();
+    }
+  }, [target, id, labelRef]);
+
+  useEffect(() => {
+    if (!labelSwapRef || !labelSwapRef.current) return;
+    if (editable) {
+      labelSwapRef.current.innerHTML = label;
+      labelSwapRef.current.focus();
+      document.execCommand('selectAll', false, null);
+    }
+  }, [editable, labelSwapRef, label]);
+
   return (
     <div className="leaf" ref={composeRefs(leafRef, outerRef)}>
       <div
@@ -152,10 +184,18 @@ const Leaf = forwardRef(({ id, label, subordinates, level, delegate }, outerRef)
         role="button"
         tabIndex={0}
         style={labelStyle}
-        onBlur={() => setTargetted(false)}
+        onClick={() => toggle(true)}
         onMouseDown={(e) => makeDraggable(e)}
       >
-        { label + id }
+        <div className="origin">
+          { label }
+        </div>
+        <div
+          className="swap"
+          contentEditable
+          ref={labelSwapRef}
+          onBlur={() => toggle(false)}
+        />
       </div>
       { !!level && !dragging && <div className="root" style={rootStyle} /> }
       { !!subordinates && !!subordinates.length && (

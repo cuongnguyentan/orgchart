@@ -1,11 +1,20 @@
 export const ACTION_TYPES = {
+  SET_ACTIVE_MODAL: 'SET_ACTIVE_MODAL',
   SET_DATA: 'SET_DATA',
   SET_EMPLOYEES: 'SET_EMPLOYEES',
   SET_TARGET: 'SET_TARGET',
   SET_END_COORDS: 'SET_END_COORDS',
-  SET_ATTACHING: 'SET_ATTACHING',
-  ATTACH: 'ATTACH'
+  ATTACH: 'ATTACH',
+  DETACH: 'DETACH',
+  ADD_LEAF: 'ADD_LEAF',
+  EDIT_LEAF: 'EDIT_LEAF'
 };
+
+const toggleModal = (name, val) => ({
+  type: ACTION_TYPES.SET_ACTIVE_MODAL,
+  name,
+  val
+});
 
 const setData = (data) => (dispatch) => {
   dispatch({
@@ -35,27 +44,44 @@ const setEndCoords = (coords) => (dispatch) => {
   });
 };
 
-const setAttaching = (attaching) => (dispatch) => {
-  dispatch({
-    type: ACTION_TYPES.SET_ATTACHING,
-    attaching
-  });
-};
-
 const attach = (terminal) => (dispatch) => {
   dispatch({
     type: ACTION_TYPES.ATTACH,
     terminal
   });
+};
 
-  dispatch(setAttaching(true));
+const detach = (target) => (dispatch) => {
+  dispatch({
+    type: ACTION_TYPES.DETACH,
+    target
+  });
+};
+
+const addLeaf = (terminal, employee) => (dispatch) => {
+  dispatch({
+    type: ACTION_TYPES.ADD_LEAF,
+    terminal,
+    employee
+  });
+};
+
+const editLeaf = (target, name) => (dispatch) => {
+  dispatch({
+    type: ACTION_TYPES.EDIT_LEAF,
+    target,
+    name
+  });
 };
 
 export default {
+  toggleModal,
   setData,
   setEmployees,
   setTarget,
   setEndCoords,
-  setAttaching,
-  attach
+  attach,
+  detach,
+  addLeaf,
+  editLeaf
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { faFolderOpen, faSave, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { gsap } from 'gsap';
 import { Draggable } from 'gsap/all';
 
@@ -18,8 +18,7 @@ gsap.registerPlugin(Draggable);
 const App = () => {
   const dispatch = useDispatch();
 
-  const { data } = useSelector((state) => state.app);
-  const { employees } = useSelector((state) => state.app);
+  const { data, employees, target } = useSelector((state) => state.app);
 
   const chartRef = useRef();
   const appRef = useRef();
@@ -40,6 +39,20 @@ const App = () => {
     } catch(err) {
       alert(err.toString());
     }
+  };
+
+  const save = () => {
+    const json = JSON.stringify(employees);
+    // TODO: handle save action here
+  };
+
+  const remove = () => {
+    dispatch(appActions.detach());
+  };
+
+  const add = () => {
+    const e = new Employee();
+    dispatch(appActions.addLeaf(null, e));
   };
 
   useEffect(() => {
@@ -80,7 +93,15 @@ const App = () => {
 
       <div className="controls">
         <FontAwesomeIcon icon={faFolderOpen} onClick={() => browseFile()} />
+        <FontAwesomeIcon icon={faSave} onClick={() => save()} />
         <input type="file" ref={fileInputRef} accept=".json" onChange={(e) => loadData(e)} />
+
+        { !!target && (
+          <div className="targetted">
+            <FontAwesomeIcon icon={faPlus} onClick={() => add()} />
+            <FontAwesomeIcon icon={faTimes} onClick={() => remove()} />
+          </div>
+        ) }
       </div>
     </div>
   );
