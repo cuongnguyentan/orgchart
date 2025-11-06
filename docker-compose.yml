@@ -1,0 +1,13 @@
+services:
+  cuongxoi-orgchart:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cuongxoi-orgchart
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /usr/src/app/build
+    ports:
+      - ${PORT}:${PORT}
+    command: npm run start
